@@ -9,3 +9,5 @@
 }
 
 4. Received a successful response, indicating the API is functioning as expected.
+
+![alt text](image.png)
