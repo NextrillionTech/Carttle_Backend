@@ -10,4 +10,5 @@
 
 4. Received a successful response, indicating the API is functioning as expected.
 
+SCREENSHOT OF POSTMAN API :
 ![alt text](image.png)
