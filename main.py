@@ -1,18 +1,19 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import firebase_admin
-from firebase_admin import auth, credentials
+from firebase_admin import credentials
 import random
 import time
+from typing import Dict
 
 app = FastAPI()
 
 # Firebase Admin SDK initialization
-cred = credentials.Certificate("carttle-1104-firebase-adminsdk-3ud2p-b75eb8ccf4.json")
+cred = credentials.Certificate("carttle-1104-firebase-adminsdk-3ud2p-cd439d4911.json")
 firebase_admin.initialize_app(cred)
 
 # Dummy user data (replace with a real database)
-fake_users_db = {
+fake_users_db : Dict[str, Dict[str, str]] = {
     "9150210429": {
         "phone_number": "9150210429",
         "otp": None,
