@@ -11,4 +11,8 @@
 4. Received a successful response, indicating the API is functioning as expected.
 
 SCREENSHOT OF POSTMAN API :
+1. Connection Established !
 ![alt text](image.png)
+
+2. OTP Implemented implemented in terminal
+![alt text](image-1.png)
