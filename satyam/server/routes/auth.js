@@ -5,17 +5,13 @@ const authRouter = express.Router();
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
 
-
-
 //Create Account
 authRouter.post("/api/signup", async (req, res) => {
   try {
     const { name, phonenumber, password } = req.body;
     const existingUser = await User.findOne({ phonenumber });
     if (existingUser) {
-      return res
-      .status(400)
-      .json({ msg: "User already exists" });
+      return res.status(400).json({ msg: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -56,6 +52,5 @@ authRouter.post("/api/signin", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 module.exports = authRouter;
