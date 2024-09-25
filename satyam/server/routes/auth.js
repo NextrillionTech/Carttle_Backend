@@ -32,6 +32,7 @@ authRouter.post("/api/signup", async (req, res) => {
 });
 
 // Login
+
 authRouter.post("/api/signin", async (req, res) => {
   try {
     const { phonenumber, password } = req.body;
@@ -40,13 +41,14 @@ authRouter.post("/api/signin", async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ msg: "User with this phonenumber does not exist!" });
+        .json({ msg: "User with this phonenumber does not exist" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
+
     const token = jwt.sign({ _id: user._id }, "passwordKey");
     res.json({ token, ...user._doc });
   } catch (err) {
