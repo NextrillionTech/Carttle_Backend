@@ -1,9 +1,11 @@
 const express = require("express");
 const User = require("../models/user");
+const G_User = require("../models/g_user");
 const bcrypt = require("bcryptjs");
 const authRouter = express.Router();
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
+const passport = require("passport");
 
 //Create Account
 authRouter.post("/api/signup", async (req, res) => {
@@ -32,13 +34,13 @@ authRouter.post("/api/signup", async (req, res) => {
 // Login
 authRouter.post("/api/signin", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phonenumber, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ phonenumber });
     if (!user) {
       return res
         .status(400)
-        .json({ msg: "User with this email does not exist" });
+        .json({ msg: "User with this phonenumber does not exist!" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -52,5 +54,33 @@ authRouter.post("/api/signin", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+authRouter.post("/api/g_signin", async (req, res) => {
+  try {
+    const { id, name, email } = req.body;
+
+    if (!id || !name || !email) {
+      return res.status(400).json({ error: "All fields (id, name, email) are required." });
+    }
+
+    let existingUser = await G_User.findOne({ email });
+    if (existingUser) {
+      return res.status(200).json({ message: "User already exists" });
+    }
+
+    let g_user = new G_User({
+      id,
+      name,
+      email,
+    });
+
+    g_user = await g_user.save();
+    res.status(201).json({ message: "User successfully created", user: g_user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error. Please try again later." });
+  }
+});
+
 
 module.exports = authRouter;

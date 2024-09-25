@@ -1,13 +1,17 @@
+// index.js
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors"); // Import cors
+require("dotenv").config();
 
 const app = express();
-const DB =
-  "mongodb+srv://skanoujia9:cartle123@cluster0.hkgom.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const DB = process.env.DB_CONNECTION_STRING;
 
 // Importing the routes
 const authRouter = require("./routes/auth");
+const dlVerificationRouter = require("./routes/dlVerification");
+const rcVerificationRouter = require("./routes/rcVerification");
 
 // Enable CORS (Allow access from anywhere)
 app.use(
@@ -22,7 +26,10 @@ app.use(
 app.use(express.json());
 
 // Add your routes
-app.use(authRouter);
+app.use('/auth', authRouter);
+app.use('/verify-dl', dlVerificationRouter);
+app.use('/verify-rc', rcVerificationRouter);
+
 
 // Connect to MongoDB
 mongoose
@@ -31,4 +38,5 @@ mongoose
   .catch((err) => console.log(err));
 
 // Start the server
-app.listen(3000, "0.0.0.0", () => console.log("Server running on port 3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
