@@ -1,8 +1,6 @@
-// index.js
-
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors"); // Import cors
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
@@ -25,11 +23,10 @@ app.use(
 // Use JSON parser middleware
 app.use(express.json());
 
-// Add your routes
-app.use('/auth', authRouter);
-app.use('/verify-dl', dlVerificationRouter);
-app.use('/verify-rc', rcVerificationRouter);
-
+// Add your routes with prefixes
+app.use("/auth", authRouter);
+app.use("/verify-dl", dlVerificationRouter);
+app.use("/verify-rc", rcVerificationRouter);
 
 // Connect to MongoDB
 mongoose
@@ -39,4 +36,6 @@ mongoose
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`Server running on port ${PORT}`)
+);
