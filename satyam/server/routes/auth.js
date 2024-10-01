@@ -5,12 +5,11 @@ const bcrypt = require("bcryptjs");
 const authRouter = express.Router();
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
-const passport = require("passport");
 
 //Create Account
 authRouter.post("/api/signup", async (req, res) => {
   try {
-    const { name, phonenumber, password } = req.body;
+    const { name, phonenumber, password, type} = req.body;
     const existingUser = await User.findOne({ phonenumber });
     if (existingUser) {
       return res.status(400).json({ msg: "User already exists" });
@@ -22,6 +21,7 @@ authRouter.post("/api/signup", async (req, res) => {
       name,
       phonenumber,
       password: hashedPassword,
+      type,
     });
     user = await user.save();
     res.json(user);

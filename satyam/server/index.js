@@ -12,7 +12,9 @@ const DB = process.env.DB_CONNECTION_STRING;
 const authRouter = require("./routes/auth");
 const dlVerificationRouter = require("./routes/dlVerification");
 const rcVerificationRouter = require("./routes/rcVerification");
-
+const fuelPriceRouter = require("./routes/fuelPrice");
+const distanceMatrixRouter = require("./routes/distanceMatrix");
+ 
 // Enable CORS (Allow access from anywhere)
 app.use(
   cors({
@@ -29,6 +31,8 @@ app.use(express.json());
 app.use('/auth', authRouter);
 app.use('/verify-dl', dlVerificationRouter);
 app.use('/verify-rc', rcVerificationRouter);
+app.use('/fuelPrice',fuelPriceRouter);
+app.use('/distanceMatrix',distanceMatrixRouter);
 
 
 // Connect to MongoDB
