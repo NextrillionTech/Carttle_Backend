@@ -1,8 +1,6 @@
-// index.js
-
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors"); // Import cors
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
@@ -43,4 +41,6 @@ mongoose
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`Server running on port ${PORT}`)
+);

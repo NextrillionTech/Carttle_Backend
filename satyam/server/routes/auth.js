@@ -62,7 +62,9 @@ authRouter.post("/api/g_signin", async (req, res) => {
     const { id, name, email } = req.body;
 
     if (!id || !name || !email) {
-      return res.status(400).json({ error: "All fields (id, name, email) are required." });
+      return res
+        .status(400)
+        .json({ error: "All fields (id, name, email) are required." });
     }
 
     let existingUser = await G_User.findOne({ email });
@@ -77,12 +79,13 @@ authRouter.post("/api/g_signin", async (req, res) => {
     });
 
     g_user = await g_user.save();
-    res.status(201).json({ message: "User successfully created", user: g_user });
+    res
+      .status(201)
+      .json({ message: "User successfully created", user: g_user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error. Please try again later." });
   }
 });
-
 
 module.exports = authRouter;
