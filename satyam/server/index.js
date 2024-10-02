@@ -12,6 +12,9 @@ const dlVerificationRouter = require("./routes/dlVerification");
 const rcVerificationRouter = require("./routes/rcVerification");
 const fuelPriceRouter = require("./routes/fuelPrice");
 const distanceMatrixRouter = require("./routes/distanceMatrix");
+const createRideRouter = require("./routes/ride");
+const costCalculatorRouter = require("./routes/costCalculator");
+
  
 // Enable CORS (Allow access from anywhere)
 app.use(
@@ -31,6 +34,8 @@ app.use('/verify-dl', dlVerificationRouter);
 app.use('/verify-rc', rcVerificationRouter);
 app.use('/fuelPrice',fuelPriceRouter);
 app.use('/distanceMatrix',distanceMatrixRouter);
+app.use('/create-ride',createRideRouter);
+app.use('/calculate-cost', costCalculatorRouter);
 
 
 // Connect to MongoDB
