@@ -15,7 +15,6 @@ const distanceMatrixRouter = require("./routes/distanceMatrix");
 const createRideRouter = require("./routes/ride");
 const costCalculatorRouter = require("./routes/costCalculator");
 
- 
 // Enable CORS (Allow access from anywhere)
 app.use(
   cors({
@@ -29,14 +28,13 @@ app.use(
 app.use(express.json());
 
 // Add your routes
-app.use('/auth', authRouter);
-app.use('/verify-dl', dlVerificationRouter);
-app.use('/verify-rc', rcVerificationRouter);
-app.use('/fuelPrice',fuelPriceRouter);
-app.use('/distanceMatrix',distanceMatrixRouter);
-app.use('/create-ride',createRideRouter);
-app.use('/calculate-cost', costCalculatorRouter);
-
+app.use("/auth", authRouter);
+app.use("/verify-dl", dlVerificationRouter);
+app.use("/verify-rc", rcVerificationRouter);
+app.use("/fuelPrice", fuelPriceRouter);
+app.use("/distanceMatrix", distanceMatrixRouter);
+app.use("/create-ride", createRideRouter);
+app.use("/calculate-cost", costCalculatorRouter);
 
 // Connect to MongoDB
 mongoose
