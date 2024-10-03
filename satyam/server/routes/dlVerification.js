@@ -25,6 +25,23 @@ router.post("/", async (req, res) => {
 
   const { userId, dlnumber, dob } = req.body;
 
+  // Check if the driving license is already verified
+  const existingDLRecord = await DrivingVerification.findOne({ dlnumber });
+  if (existingDLRecord) {
+    if (existingDLRecord.userId === userId) {
+      // Same user trying to verify again
+      return res.status(200).json({
+        message: "Driving license already verified by this user.",
+        data: existingDLRecord,
+      });
+    } else {
+      // Different user attempting to verify an already verified DL
+      return res.status(403).json({
+        error: "This driving license is already verified and linked to another user.",
+      });
+    }
+  }
+
   const options = {
     method: "POST",
     url: "https://driving-license-verification1.p.rapidapi.com/DL/DLDetails",
@@ -55,6 +72,7 @@ router.post("/", async (req, res) => {
 
     const name = apiData.name;
 
+    // Store verified DL information in the database
     await DrivingVerification.create({
       userId,
       dlnumber,
@@ -62,7 +80,10 @@ router.post("/", async (req, res) => {
       dob,
     });
 
-    return res.status(200).json(apiData);
+    return res.status(200).json({
+      message: "Driving license verified and stored successfully!",
+      data: apiData,
+    });
   } catch (error) {
     console.error("Error verifying driving license:", error.message);
     return res.status(500).json({ error: "Failed to verify driving license." });

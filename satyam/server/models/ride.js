@@ -1,34 +1,21 @@
 const mongoose = require('mongoose');
 
-const locationSchema = new mongoose.Schema({
-  latitude: {
-    type: Number,
-    required: true
-  },
-  longitude: {
-    type: Number,
-    required: true
-  }
-});
-
 const rideSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
     required: true
   },
   from: {
-    type: locationSchema,
+    type: String,  
     required: true
   },
   to: {
-    type: locationSchema,
+    type: String,  
     required: true
   },
   available_seat: {
     type: Number,
-    required: true,
-    min: 1
+    required: true
   },
   amount_per_seat: {
     type: Number,
@@ -39,15 +26,8 @@ const rideSchema = new mongoose.Schema({
     required: true
   },
   dateDetails: {
-    type: {
-      start_date: { type: Date, required: function() { return this.shuttle === true; } },
-      end_date: { type: Date, required: function() { return this.shuttle === true; } },
-      date: { type: Date, required: function() { return this.shuttle === false; } },
-      time: { 
-        type: String, 
-        required: function() { return this.shuttle === true || this.shuttle === false; } 
-      }
-    }
+    type: Object, 
+    required: true
   }
 });
 

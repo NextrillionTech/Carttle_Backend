@@ -9,10 +9,10 @@ const DB = process.env.DB_CONNECTION_STRING;
 // Importing the routes
 const authRouter = require("./routes/auth");
 const dlVerificationRouter = require("./routes/dlVerification");
-const rcVerificationRouter = require("./routes/rcVerification");
+const rcRouter = require("./routes/rcVerification");
 const fuelPriceRouter = require("./routes/fuelPrice");
 const distanceMatrixRouter = require("./routes/distanceMatrix");
-const createRideRouter = require("./routes/ride");
+const rideRouter = require("./routes/ride");
 const costCalculatorRouter = require("./routes/costCalculator");
 
  
@@ -31,10 +31,10 @@ app.use(express.json());
 // Add your routes
 app.use('/auth', authRouter);
 app.use('/verify-dl', dlVerificationRouter);
-app.use('/verify-rc', rcVerificationRouter);
+app.use(rcRouter);
 app.use('/fuelPrice',fuelPriceRouter);
 app.use('/distanceMatrix',distanceMatrixRouter);
-app.use('/create-ride',createRideRouter);
+app.use(rideRouter);
 app.use('/calculate-cost', costCalculatorRouter);
 
 
