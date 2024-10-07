@@ -14,6 +14,7 @@ const fuelPriceRouter = require("./routes/fuelPrice");
 const distanceMatrixRouter = require("./routes/distanceMatrix");
 const rideRouter = require("./routes/ride");
 const costCalculatorRouter = require("./routes/costCalculator");
+const tripRouter = require("./routes/trip");
 
  
 // Enable CORS (Allow access from anywhere)
@@ -36,7 +37,7 @@ app.use('/fuelPrice',fuelPriceRouter);
 app.use('/distanceMatrix',distanceMatrixRouter);
 app.use(rideRouter);
 app.use('/calculate-cost', costCalculatorRouter);
-
+app.use(tripRouter);
 
 // Connect to MongoDB
 mongoose
