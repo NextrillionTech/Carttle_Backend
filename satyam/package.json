@@ -15,6 +15,7 @@
     "@react-native-firebase/auth": "^20.5.0",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.0",
     "cookie-session": "^2.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
