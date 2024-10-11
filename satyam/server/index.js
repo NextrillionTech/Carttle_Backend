@@ -16,6 +16,8 @@ const rideRouter = require("./routes/ride");
 const costCalculatorRouter = require("./routes/costCalculator");
 const tripRouter = require("./routes/trip");
 const cloudinaryRouter = require("./routes/cloudinary");
+const { default: setupSocket } = require("./socket/socket");
+const { default: messagesRoutes } = require("./routes/messagesRoutes");
 
  
 // Enable CORS (Allow access from anywhere)
@@ -40,6 +42,7 @@ app.use(rideRouter);
 app.use('/calculate-cost', costCalculatorRouter);
 app.use(tripRouter);
 app.use(cloudinaryRouter);
+app.use("/messages",messagesRoutes)
 
 // Connect to MongoDB
 mongoose
@@ -52,3 +55,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`Server running on port ${PORT}`)
 );
+
+setupSocket(server);
