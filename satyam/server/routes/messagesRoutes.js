@@ -1,9 +1,8 @@
-import {Router} from "express";
-
-import { getMessages } from "../controllers/messagesController";
+const { Router } = require("express");
+const { getMessages } = require("../controllers/messagesController");
 
 const messagesRoutes = Router();
 
-messagesRoutes.post("/get-messages",getMessages);
+messagesRoutes.post("/get-messages", getMessages);
 
-export default messagesRoutes;
+module.exports = messagesRoutes;

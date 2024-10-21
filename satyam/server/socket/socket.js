@@ -1,5 +1,5 @@
-import { Server as SocketIOServer } from "socket.io";
-import Message from "../models/messages";
+const { Server: SocketIOServer } = require("socket.io");
+const Message = require("../models/messages");
 
 const setupSocket = (server) => {
     const io = new SocketIOServer(server, {
@@ -32,11 +32,11 @@ const setupSocket = (server) => {
             .populate("sender", "id email name")
             .populate("recipient", "id email name");
 
-        if(recipientSocketId){
-            io.to(recipientSocketId).emit("recieveMessage",messageData);
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit("recieveMessage", messageData);
         }
-        if(senderSocketId){
-            io.to(senderSocketId).emit("recieveMessage",messageData);
+        if (senderSocketId) {
+            io.to(senderSocketId).emit("recieveMessage", messageData);
         }
     };
 
@@ -46,16 +46,13 @@ const setupSocket = (server) => {
         if (userId) {
             userSocketMap.set(userId, socket.id);
             console.log(`User connected ${userId} with socket ID: ${socket.id}`);
-        }
-        else {
+        } else {
             console.log("User ID not provided during connection.");
         }
 
-        socket.on("sendMessage", sendMessage)
+        socket.on("sendMessage", sendMessage);
         socket.on("disconnect", () => disconnect(socket));
-
     });
 };
 
-
-export default setupSocket;
+module.exports = setupSocket;

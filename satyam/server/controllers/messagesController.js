@@ -1,9 +1,9 @@
-import Message from "../models/messages";
+const Message = require("../models/messages");
 
-export const getMessages = async (request, response, next) => {
+const getMessages = async (request, response, next) => {
     try {
         const user1 = request.userId;
-        const user2 = req.body.id;
+        const user2 = request.body.id;
 
         if (!user1 || !user2) {
             return response.status(400).send("Both user ID's are required.");
@@ -21,6 +21,7 @@ export const getMessages = async (request, response, next) => {
     } catch (error) {
         console.log({ error });
         return response.status(500).send("Internal Server Error");
-
     }
 };
+
+module.exports = { getMessages };

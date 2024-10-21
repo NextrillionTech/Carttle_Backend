@@ -26,6 +26,7 @@
     "mongoose": "^8.6.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "razorpay": "^2.9.4",
     "socket.io": "^4.8.0",
     "uuid": "^10.0.0"
   },

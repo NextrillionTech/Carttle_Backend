@@ -1,9 +1,12 @@
 const express = require("express");
+const http = require("http"); // Import the http module
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+const server = http.createServer(app); // Create the HTTP server
+
 const DB = process.env.DB_CONNECTION_STRING;
 
 // Importing the routes
@@ -16,10 +19,12 @@ const rideRouter = require("./routes/ride");
 const costCalculatorRouter = require("./routes/costCalculator");
 const tripRouter = require("./routes/trip");
 const cloudinaryRouter = require("./routes/cloudinary");
-const { default: setupSocket } = require("./socket/socket");
-const { default: messagesRoutes } = require("./routes/messagesRoutes");
+const setupSocket = require("./socket/socket"); // Adjust the path as needed
+const messagesRoutes = require("./routes/messagesRoutes");
+const paymentRoute = require('./routes/paymentRoute');
 
- 
+
+
 // Enable CORS (Allow access from anywhere)
 app.use(
   cors({
@@ -36,13 +41,15 @@ app.use(express.json());
 app.use('/auth', authRouter);
 app.use('/verify-dl', dlVerificationRouter);
 app.use(rcRouter);
-app.use('/fuelPrice',fuelPriceRouter);
-app.use('/distanceMatrix',distanceMatrixRouter);
+app.use('/fuelPrice', fuelPriceRouter);
+app.use('/distanceMatrix', distanceMatrixRouter);
 app.use(rideRouter);
 app.use('/calculate-cost', costCalculatorRouter);
 app.use(tripRouter);
 app.use(cloudinaryRouter);
-app.use("/messages",messagesRoutes)
+app.use("/messages", messagesRoutes);
+app.use('/', paymentRoute);
+
 
 // Connect to MongoDB
 mongoose
@@ -50,10 +57,11 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log(err));
 
+setupSocket(server);
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`Server running on port ${PORT}`)
 );
 
-setupSocket(server);
