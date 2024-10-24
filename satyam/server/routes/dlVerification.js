@@ -4,8 +4,9 @@ const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const Joi = require("joi");
 
-// Import MongoDB model
+// Import MongoDB models
 const DrivingVerification = require("../models/drivingVerification");
+const User = require("../models/user"); // Import User model
 
 // Define validation schema
 const schema = Joi.object({
@@ -79,6 +80,14 @@ router.post("/", async (req, res) => {
       name,
       dob,
     });
+
+    // Update User record with the dlnumber and dob
+    await User.findByIdAndUpdate(
+      userId,
+      { dlnumber, dob }, // Combine both dlnumber and dob into one object
+      { new: true } // Return the updated document
+    );
+
 
     return res.status(200).json({
       message: "Driving license verified and stored successfully!",

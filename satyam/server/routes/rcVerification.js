@@ -27,34 +27,25 @@ rcRouter.post("/verify-rc", async (req, res) => {
     if (existingRecord.userId.toString() === userId) {
       return res.status(200).json({
         message: "Vehicle is already verified by this user.",
-        data: existingRecord
+        data: existingRecord,
       });
     } else {
       // If the registration number is linked to another user
       return res.status(403).json({
-        error: "This registration number is already verified and linked to another user."
+        error: "This registration number is already verified and linked to another user.",
       });
     }
   }
 
-  // Prepare the data for API request
-  const data = JSON.stringify({
-    reg_no: regNumber,
-    consent: "Y",
-    consent_text:
-      "I hereby declare my consent for fetching my information via AITAN Labs API",
-  });
-
+  // Prepare the options for API request to the new host
   const options = {
-    method: "POST",
-    hostname: "rto-vehicle-information-verification-india.p.rapidapi.com",
+    method: "GET",
+    hostname: "rc-verification-india.p.rapidapi.com",
     port: null,
-    path: "/api/v1/rc/vehicleinfo",
+    path: `/${regNumber}`, // Assuming the registration number is passed in the path
     headers: {
-      "x-rapidapi-key": process.env.RAPIDAPI_KEY,
-      "x-rapidapi-host":
-        "rto-vehicle-information-verification-india.p.rapidapi.com",
-      "Content-Type": "application/json",
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY, // Ensure your API key is securely stored in environment variables
+      "x-rapidapi-host": "rc-verification-india.p.rapidapi.com",
     },
   };
 
@@ -71,36 +62,32 @@ rcRouter.post("/verify-rc", async (req, res) => {
       try {
         const parsedData = JSON.parse(body);
 
-        // Extract relevant fields from the API response
-        const {
-          owner_name,
-          vehicle_class_desc,
-          model,
-          state,
-          current_full_address,
-        } = parsedData.result;
+        // Extract required fields from the API response
+        const { color, registrationNumber, rc_model } = parsedData.detail;
 
         // Store the verified data in the database
         const newVerification = await VehicleVerification.create({
           userId,
-          reg_no: regNumber,
-          owner_name,
-          vehicle_class_desc,
-          model,
-          state,
-          current_full_address,
+          reg_no: registrationNumber,
+          color,
+          rc_model,
         });
+
+        // Update User record with the regNumber
+        await User.findByIdAndUpdate(
+          userId,
+          { regNumber },
+          { new: true } // Return the updated document
+        );
 
         // Respond with the API data
         res.status(apiRes.statusCode).json({
           message: "Vehicle verified and stored successfully!",
-          data: newVerification
+          data: newVerification,
         });
       } catch (e) {
         console.error("Error parsing API response:", e);
-        res
-          .status(500)
-          .json({ error: "Invalid response from verification service." });
+        res.status(500).json({ error: "Invalid response from verification service." });
       }
     });
   });
@@ -111,9 +98,9 @@ rcRouter.post("/verify-rc", async (req, res) => {
     res.status(500).json({ error: "Failed to verify vehicle registration." });
   });
 
-  // Send the request data
-  apiReq.write(data);
+  // Send the request
   apiReq.end();
 });
+
 
 module.exports = rcRouter;

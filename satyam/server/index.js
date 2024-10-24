@@ -1,11 +1,11 @@
 const express = require("express");
-const http = require("http"); // Import the http module
+const http = require("http"); 
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const server = http.createServer(app); // Create the HTTP server
+const server = http.createServer(app); 
 
 const DB = process.env.DB_CONNECTION_STRING;
 
@@ -19,9 +19,10 @@ const rideRouter = require("./routes/ride");
 const costCalculatorRouter = require("./routes/costCalculator");
 const tripRouter = require("./routes/trip");
 const cloudinaryRouter = require("./routes/cloudinary");
-const setupSocket = require("./socket/socket"); // Adjust the path as needed
+const setupSocket = require("./socket/socket"); 
 const messagesRoutes = require("./routes/messagesRoutes");
 const paymentRoute = require('./routes/paymentRoute');
+const profileRouter = require("./routes/profile");
 
 
 
@@ -49,6 +50,7 @@ app.use(tripRouter);
 app.use(cloudinaryRouter);
 app.use("/messages", messagesRoutes);
 app.use('/', paymentRoute);
+app.use(profileRouter);
 
 
 // Connect to MongoDB
