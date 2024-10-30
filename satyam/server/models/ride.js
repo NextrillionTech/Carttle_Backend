@@ -3,15 +3,22 @@ const mongoose = require('mongoose');
 const rideSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true
+    required: true,
+    ref: 'User' 
   },
   from: {
-    type: String,  
-    required: true
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: {
+      type: [Number],
+      required: true,
+    }
   },
   to: {
-    type: String,  
-    required: true
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: {
+      type: [Number],
+      required: true,
+    }
   },
   available_seat: {
     type: Number,
@@ -26,10 +33,35 @@ const rideSchema = new mongoose.Schema({
     required: true
   },
   dateDetails: {
-    type: Object, 
-    required: true
-  }
+    date: { 
+      type: Date, 
+      required: function() { return !this.shuttle; } 
+    },
+    start_date: { 
+      type: Date, 
+      required: function() { return this.shuttle; } 
+    },
+    end_date: { 
+      type: Date, 
+      required: function() { return this.shuttle; } 
+    },
+    time: { 
+      type: String, 
+      required: true,
+    },
+    round_trip_time: {
+      type: String,
+      required: function() { return this.round_trip; }
+    }
+  },
+  round_trip: {
+    type: Boolean,
+    default: false
+  },
 });
+
+rideSchema.index({ from: "2dsphere" });
+rideSchema.index({ to: "2dsphere" });
 
 const Ride = mongoose.model('Ride', rideSchema);
 

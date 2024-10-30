@@ -23,6 +23,7 @@ const setupSocket = require("./socket/socket");
 const messagesRoutes = require("./routes/messagesRoutes");
 const paymentRoute = require('./routes/paymentRoute');
 const profileRouter = require("./routes/profile");
+const sendMail = require("./controllers/mailController");
 
 
 
@@ -51,6 +52,9 @@ app.use(cloudinaryRouter);
 app.use("/messages", messagesRoutes);
 app.use('/', paymentRoute);
 app.use(profileRouter);
+
+app.post("/send-email", sendMail);
+
 
 
 // Connect to MongoDB

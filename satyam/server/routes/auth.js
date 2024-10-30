@@ -32,7 +32,6 @@ authRouter.post("/api/signup", async (req, res) => {
 });
 
 // Login
-
 authRouter.post("/api/signin", async (req, res) => {
   try {
     const { phonenumber, password } = req.body;
