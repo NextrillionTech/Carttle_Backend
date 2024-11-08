@@ -1,6 +1,7 @@
 const express = require("express");
 const rideRouter = express.Router();
 const Ride = require("../models/ride");
+const RideHistory = require("../models/ride_history");
 
 // Helper function to generate all dates between start and end
 const getDatesBetween = (startDate, endDate) => {
@@ -19,131 +20,108 @@ const getDatesBetween = (startDate, endDate) => {
 // POST request for creating a new ride
 rideRouter.post("/create-ride", async (req, res) => {
   try {
-    const {
-      userId,
-      from,
-      to,
-      available_seat,
-      amount_per_seat,
-      shuttle,
-      dateDetails,
-      round_trip,
-    } = req.body;
-
-    // Transform the coordinates to GeoJSON format for MongoDB
+    const { driver, from, to, available_seat, amount_per_seat, shuttle, dateDetails, round_trip } = req.body;
     const fromCoordinates = { type: "Point", coordinates: [from.longitude, from.latitude] };
     const toCoordinates = { type: "Point", coordinates: [to.longitude, to.latitude] };
 
+    const updateRideHistory = async (driverUserId, driverName, rideData) => {
+      const rideHistory = await RideHistory.findOneAndUpdate(
+        { "user.userId": driverUserId },
+        {
+          $set: { "user.name": driverName, "user.userId": driverUserId },
+          $push: { history: { $each: rideData } }
+        },
+        { new: true, upsert: true }
+      );
+      return rideHistory;
+    };
+
+    // Validate round_trip_time when round_trip is true
+    if (round_trip && !dateDetails.round_trip_time) {
+      return res.status(400).json({ error: "Round trip time is required for a round trip." });
+    }
+
     if (shuttle) {
       const dates = getDatesBetween(dateDetails.start_date, dateDetails.end_date);
-      const rideEntries = [];
 
-      const checkExistingRides = dates.map(async (date) => {
+      await Promise.all(dates.map(async (date) => {
         const existingRide = await Ride.findOne({
-          userId,
+          "driver.userId": driver.userId,
           "dateDetails.date": date,
           "dateDetails.time": dateDetails.time,
         });
         if (existingRide) {
-          throw new Error(`A ride is already scheduled at this date and time: ${date} ${dateDetails.time}`);
+          throw new Error(`A ride is already scheduled on ${date} at ${dateDetails.time}`);
         }
-      });
+      }));
 
-      await Promise.all(checkExistingRides);
-
-      dates.forEach((date) => {
-        rideEntries.push({
-          userId,
+      const rideEntries = dates.flatMap((date) => {
+        const rideData = {
+          driver: { name: driver.name, userId: driver.userId },
           from: fromCoordinates,
           to: toCoordinates,
           available_seat,
           amount_per_seat,
           shuttle: true,
-          dateDetails: {
-            date,
-            time: dateDetails.time,
-            start_date: dateDetails.start_date,
-            end_date: dateDetails.end_date,
-          },
-        });
-
+          dateDetails: { date, time: dateDetails.time },
+        };
         if (round_trip) {
-          rideEntries.push({
-            userId,
-            from: toCoordinates,
-            to: fromCoordinates,
-            available_seat,
-            amount_per_seat,
-            shuttle: true,
-            round_trip: true,
-            dateDetails: {
-              date,
-              time: dateDetails.round_trip_time,
-              start_date: dateDetails.start_date,
-              end_date: dateDetails.end_date,
-              round_trip_time: dateDetails.round_trip_time,
-            },
-          });
+          return [
+            rideData,
+            {
+              ...rideData,
+              from: toCoordinates,
+              to: fromCoordinates,
+              round_trip: true,
+              dateDetails: { ...rideData.dateDetails, time: dateDetails.round_trip_time }
+            }
+          ];
         }
+        return [rideData];
       });
 
       await Ride.insertMany(rideEntries);
+      await updateRideHistory(driver.userId, driver.name, rideEntries);
 
-      res.status(201).json({
-        message: "Shuttle ride created for all days successfully!",
-        rides: rideEntries,
-      });
+      res.status(201).json({ message: "Shuttle ride created for all days successfully!", rides: rideEntries });
     } else {
       const existingRide = await Ride.findOne({
-        userId,
+        "driver.userId": driver.userId,
         "dateDetails.date": dateDetails.date,
         "dateDetails.time": dateDetails.time,
-        "dateDetails.round_trip_time": dateDetails.round_trip_time,
       });
 
       if (existingRide) {
-        return res.status(400).json({
-          error: "You already have a ride scheduled at this date and time.",
-        });
+        return res.status(400).json({ error: "You already have a ride scheduled at this date and time." });
       }
 
-      const rideEntry = new Ride({
-        userId,
+      const rideData = {
+        driver: { name: driver.name, userId: driver.userId },
         from: fromCoordinates,
         to: toCoordinates,
         available_seat,
         amount_per_seat,
         shuttle: false,
-        dateDetails: {
-          date: dateDetails.date,
-          time: dateDetails.time,
-          ...(round_trip && { round_trip_time: dateDetails.round_trip_time }),
-        },
-      });
-
-      await rideEntry.save();
+        dateDetails: { date: dateDetails.date, time: dateDetails.time },
+      };
+      const newRide = new Ride(rideData);
+      await newRide.save();
 
       if (round_trip) {
-        const roundTripEntry = new Ride({
-          userId,
+        const roundTripData = {
+          ...rideData,
           from: toCoordinates,
           to: fromCoordinates,
-          available_seat,
-          amount_per_seat,
-          shuttle: false,
           round_trip: true,
-          dateDetails: {
-            date: dateDetails.date,
-            time: dateDetails.round_trip_time,
-            round_trip_time: dateDetails.round_trip_time,
-          },
-        });
-        await roundTripEntry.save();
+          dateDetails: { ...rideData.dateDetails, time: dateDetails.round_trip_time }
+        };
+        await new Ride(roundTripData).save();
+        await updateRideHistory(driver.userId, driver.name, [rideData, roundTripData]); 
+      } else {
+        await updateRideHistory(driver.userId, driver.name, [rideData]); 
       }
 
-      res.status(201).json({
-        message: "Non-shuttle ride created successfully!",
-      });
+      res.status(201).json({ message: "Non-shuttle ride created successfully!" });
     }
   } catch (err) {
     console.error("Error creating ride:", err);
@@ -161,7 +139,7 @@ rideRouter.get("/get-rides", async (req, res) => {
 });
 
 rideRouter.post("/rides/search", async (req, res) => {
-  const { from, to, dateDetails } = req.body;
+  const { from, to, dateDetails, maxDistance = 500, available_seat } = req.body; 
 
   if (!from || !to || !dateDetails || !dateDetails.date || !dateDetails.time) {
     return res.status(400).json({ error: "Origin, destination, date, and time are required" });
@@ -176,28 +154,27 @@ rideRouter.post("/rides/search", async (req, res) => {
       from: {
         $near: {
           $geometry: { type: "Point", coordinates: [from.longitude, from.latitude] },
-          $maxDistance: 500,
+          $maxDistance: maxDistance, 
         },
       },
       "dateDetails.date": specifiedDate,
+      ...(available_seat && { available_seat: { $gte: available_seat } }), 
     });
 
-    // Step 2: Filter rides to include only those within 500m of the destination location and within 1 hour of the user's time
+    // Step 2: Filter rides within 500m of the destination location and within 15 minutes of the user's time
     const filteredRides = ridesNearOrigin.filter((ride) => {
       const [rideLongitude, rideLatitude] = ride.to.coordinates;
       const distanceToDestination = calculateDistance(
         { lat: rideLatitude, lng: rideLongitude },
         { lat: to.latitude, lng: to.longitude }
       );
-    
-      // Convert ride time to Date object
+
       const rideTime = new Date(`${ride.dateDetails.date.toISOString().split("T")[0]}T${ride.dateDetails.time}:00Z`);
-      const timeDifference = Math.abs(rideTime - userTime) / (1000 * 60); // Difference in minutes
-    
-      // Check if destination is within 500m and time difference is 15 minutes or less
+      const timeDifference = Math.abs(rideTime - userTime) / (1000 * 60); 
+
       return distanceToDestination <= 500 && timeDifference <= 15;
     });
-    
+
     res.json(filteredRides);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -206,7 +183,7 @@ rideRouter.post("/rides/search", async (req, res) => {
 
 // Helper function to calculate distance between two geographic coordinates
 function calculateDistance(coord1, coord2) {
-  const R = 6371000; // Radius of Earth in meters
+  const R = 6371000; 
   const dLat = ((coord2.lat - coord1.lat) * Math.PI) / 180;
   const dLng = ((coord2.lng - coord1.lng) * Math.PI) / 180;
 
@@ -219,5 +196,81 @@ function calculateDistance(coord1, coord2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
+
+// Endpoint to add a traveler to a ride and decrease available seats
+rideRouter.post('/rides/:rideId/join', async (req, res) => {
+  const { rideId } = req.params;
+  const { userId, name } = req.body;
+
+  if (!userId || !name) {
+    return res.status(400).json({ error: "UserId and name are required" });
+  }
+
+  try {
+    const ride = await Ride.findById(rideId);
+
+    if (!ride) {
+      return res.status(404).json({ error: "Ride not found" });
+    }
+
+    if (ride.available_seat <= 0) {
+      return res.status(400).json({ error: "No available seats left" });
+    }
+
+    ride.travellers.push({ userId, name });
+    ride.available_seat -= 1;
+
+    await ride.save();
+
+    await updateTravelerHistory(userId, name, ride);
+
+    res.json({
+      message: "Traveler added successfully, available seats updated",
+      ride,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Function to update traveler's history record
+const updateTravelerHistory = async (travelerUserId, travelerName, rideData) => {
+  const travelHistory = await RideHistory.findOneAndUpdate(
+    { "user.userId": travelerUserId },
+    {
+      $set: { "user.name": travelerName, "user.userId": travelerUserId },
+      $push: { history: rideData }
+    },
+    { new: true, upsert: true }
+  );
+  return travelHistory;
+};
+
+
+// GET API to fetch details of a specific ride, including driver and travelers
+rideRouter.get("/rides/:rideId", async (req, res) => {
+  const { rideId } = req.params;
+
+  try {
+    const ride = await Ride.findById(rideId).select("driver travellers");
+
+    if (!ride) {
+      return res.status(404).json({ error: "Ride not found" });
+    }
+
+    const rideDetails = {
+      driver: {
+        name: ride.driver.name,
+        userId: ride.driver.userId,
+      },
+      travellers: ride.travellers.length ? ride.travellers : "No travelers yet"
+    };
+
+    return res.json(rideDetails);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 
 module.exports = rideRouter;

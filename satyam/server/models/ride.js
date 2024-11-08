@@ -1,10 +1,16 @@
 const mongoose = require('mongoose');
 
 const rideSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'User' 
+  driver: {
+    name: {
+      type: String,
+      required: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   from: {
     type: { type: String, enum: ['Point'], default: 'Point' },
@@ -51,13 +57,31 @@ const rideSchema = new mongoose.Schema({
     },
     round_trip_time: {
       type: String,
-      required: function() { return this.round_trip; }
+      validate: {
+        validator: function(value) {
+          return this.round_trip ? value != null : true;
+        },
+        message: "Path `dateDetails.round_trip_time` is required when `round_trip` is true."
+      }
     }
   },
   round_trip: {
     type: Boolean,
     default: false
   },
+  travellers: [
+    {
+      name: {
+        type: String,
+        required: false,
+      },
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: false,
+      },
+    }
+  ],
 });
 
 rideSchema.index({ from: "2dsphere" });
