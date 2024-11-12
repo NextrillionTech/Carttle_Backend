@@ -36,7 +36,8 @@ const rideSchema = new mongoose.Schema({
   },
   shuttle: {
     type: Boolean,
-    required: true
+    required: true,
+    default: false
   },
   dateDetails: {
     date: { 
@@ -44,12 +45,22 @@ const rideSchema = new mongoose.Schema({
       required: function() { return !this.shuttle; } 
     },
     start_date: { 
-      type: Date, 
-      required: function() { return this.shuttle; } 
+      type: Date,
+      validate: {
+        validator: function(value) {
+          return this.shuttle ? value != null : true;
+        },
+        message: "Start date is required when shuttle is true."
+      }
     },
     end_date: { 
-      type: Date, 
-      required: function() { return this.shuttle; } 
+      type: Date,
+      validate: {
+        validator: function(value) {
+          return this.shuttle ? value != null : true;
+        },
+        message: "End date is required when shuttle is true."
+      }
     },
     time: { 
       type: String, 
@@ -61,7 +72,7 @@ const rideSchema = new mongoose.Schema({
         validator: function(value) {
           return this.round_trip ? value != null : true;
         },
-        message: "Path `dateDetails.round_trip_time` is required when `round_trip` is true."
+        message: "Round trip time is required when round_trip is true."
       }
     }
   },

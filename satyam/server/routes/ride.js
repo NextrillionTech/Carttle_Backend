@@ -36,7 +36,6 @@ rideRouter.post("/create-ride", async (req, res) => {
       return rideHistory;
     };
 
-    // Validate round_trip_time when round_trip is true
     if (round_trip && !dateDetails.round_trip_time) {
       return res.status(400).json({ error: "Round trip time is required for a round trip." });
     }
@@ -104,8 +103,7 @@ rideRouter.post("/create-ride", async (req, res) => {
         shuttle: false,
         dateDetails: { date: dateDetails.date, time: dateDetails.time },
       };
-      const newRide = new Ride(rideData);
-      await newRide.save();
+      const newRide = await new Ride(rideData).save(); 
 
       if (round_trip) {
         const roundTripData = {
@@ -119,9 +117,10 @@ rideRouter.post("/create-ride", async (req, res) => {
         await updateRideHistory(driver.userId, driver.name, [rideData, roundTripData]); 
       } else {
         await updateRideHistory(driver.userId, driver.name, [rideData]); 
+        return res.status(201).json({ message: "Non-shuttle ride created successfully!", rideId: newRide._id });
       }
 
-      res.status(201).json({ message: "Non-shuttle ride created successfully!" });
+      res.status(201).json({ message: "Non-shuttle round-trip ride created successfully!" });
     }
   } catch (err) {
     console.error("Error creating ride:", err);
@@ -245,7 +244,6 @@ const updateTravelerHistory = async (travelerUserId, travelerName, rideData) => 
   );
   return travelHistory;
 };
-
 
 // GET API to fetch details of a specific ride, including driver and travelers
 rideRouter.get("/rides/:rideId", async (req, res) => {
