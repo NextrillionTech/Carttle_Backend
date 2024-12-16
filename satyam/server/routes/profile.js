@@ -27,6 +27,7 @@ profileRouter.get("/user-info/:userId", async (req, res) => {
       about_yourself:user.about_yourself,
       drive_speed:user.drive_speed,
       music_taste:user.music_taste,
+      profile_pic:user.profile_pic,
     };
 
     // Return the user information
@@ -42,7 +43,7 @@ profileRouter.get("/user-info/:userId", async (req, res) => {
 
 profileRouter.post("/update-user", async (req, res) => {
   try {
-    const { userId, email, gender, about_yourself, drive_speed, music_taste } = req.body;
+    const { userId, email, gender, about_yourself, drive_speed, music_taste, profile_pic } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -52,7 +53,7 @@ profileRouter.post("/update-user", async (req, res) => {
     // Update the user with new data
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { email, gender, about_yourself, drive_speed, music_taste },
+      { email, gender, about_yourself, drive_speed, music_taste, profile_pic },
       { new: true } // Return the updated document
     );
 
