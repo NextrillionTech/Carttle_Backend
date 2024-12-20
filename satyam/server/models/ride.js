@@ -17,32 +17,42 @@ const rideSchema = new mongoose.Schema({
     coordinates: {
       type: [Number],
       required: true,
-    }
+    },
   },
   to: {
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: {
       type: [Number],
       required: true,
-    }
+    },
+  },
+  currentLocation: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: {
+      type: [Number],
+      required: true,
+      default: function() {
+        return this.from.coordinates; // Default to the starting location
+      },
+    },
   },
   available_seat: {
     type: Number,
-    required: true
+    required: true,
   },
   amount_per_seat: {
     type: Number,
-    required: true
+    required: true,
   },
   shuttle: {
     type: Boolean,
     required: true,
-    default: false
+    default: false,
   },
   dateDetails: {
     date: { 
       type: Date, 
-      required: function() { return !this.shuttle; } 
+      required: function() { return !this.shuttle; },
     },
     start_date: { 
       type: Date,
@@ -50,8 +60,8 @@ const rideSchema = new mongoose.Schema({
         validator: function(value) {
           return this.shuttle ? value != null : true;
         },
-        message: "Start date is required when shuttle is true."
-      }
+        message: "Start date is required when shuttle is true.",
+      },
     },
     end_date: { 
       type: Date,
@@ -59,8 +69,8 @@ const rideSchema = new mongoose.Schema({
         validator: function(value) {
           return this.shuttle ? value != null : true;
         },
-        message: "End date is required when shuttle is true."
-      }
+        message: "End date is required when shuttle is true.",
+      },
     },
     time: { 
       type: String, 
@@ -72,13 +82,13 @@ const rideSchema = new mongoose.Schema({
         validator: function(value) {
           return this.round_trip ? value != null : true;
         },
-        message: "Round trip time is required when round_trip is true."
-      }
-    }
+        message: "Round trip time is required when round_trip is true.",
+      },
+    },
   },
   round_trip: {
     type: Boolean,
-    default: false
+    default: false,
   },
   travellers: [
     {
@@ -91,12 +101,18 @@ const rideSchema = new mongoose.Schema({
         ref: "User",
         required: false,
       },
-    }
+    },
   ],
+  status: {
+    type: String,
+    enum: ['upcoming', 'canceled', 'completed'],
+    default: 'upcoming',
+  },
 });
 
 rideSchema.index({ from: "2dsphere" });
 rideSchema.index({ to: "2dsphere" });
+rideSchema.index({ currentLocation: "2dsphere" });
 
 const Ride = mongoose.model('Ride', rideSchema);
 
