@@ -61,7 +61,7 @@ router.post("/", async (req, res) => {
     // Calculate total fuel cost
     const averageMileage = 10; // 10 km per liter mileage assumption
     const litersUsed = distance / averageMileage;
-    const totalCost = (litersUsed * fuelPrice).toFixed(2); // Format to two decimal places
+    const totalCost = Math.floor(litersUsed * fuelPrice);
 
     // Return the result
     res.json({
