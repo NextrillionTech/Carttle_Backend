@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        trim: true, // Trim white spaces
+        trim: true, 
     },
     phonenumber: {
         type: String,
@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         validate: {
             validator: (value) => {
-                const re = /^\d{10}$/; // Regex for 10-digit phone number
+                const re = /^\d{10}$/; 
                 return value.match(re);
             },
             message: "Please enter a valid 10-digit phone number",
@@ -22,24 +22,22 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    type: {
-        type: String,
-        required: true,
-        enum: ['driver', 'passenger'], // Restricting valid values
-    },
+    is_driver: {
+        type: Boolean,
+        required: true, 
+    },    
     dlnumber: {
         type: String,
-        trim: true, // Optional, no required flag
+        trim: true, 
     },
     regNumber: {
         type: String,
-        trim: true, // Optional, no required flag
+        trim: true, 
     },
     dob: {
         type: String,
         validate: {
             validator: (value) => {
-                // Validating date format as DD-MM-YYYY
                 const re = /^\d{2}-\d{2}-\d{4}$/;
                 return value.match(re);
             },

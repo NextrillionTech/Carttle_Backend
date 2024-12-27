@@ -138,7 +138,7 @@ rideRouter.get("/get-rides", async (req, res) => {
 });
 
 rideRouter.post("/rides/search", async (req, res) => {
-  const { currentLocation, to, dateDetails, maxDistance = 500, available_seat } = req.body;
+  const { currentLocation, to, dateDetails, maxDistance = 1000, available_seat } = req.body;
 
   if (!currentLocation || !to || !dateDetails || !dateDetails.date || !dateDetails.time) {
     return res.status(400).json({ error: "Current location, destination, date, and time are required" });
@@ -169,9 +169,9 @@ rideRouter.post("/rides/search", async (req, res) => {
       );
 
       const rideTime = new Date(`${ride.dateDetails.date.toISOString().split("T")[0]}T${ride.dateDetails.time}:00Z`);
-      const timeDifference = Math.abs(rideTime - userTime) / (1000 * 60);
+      const timeDifference = (rideTime - userTime) / (1000 * 60);
 
-      return distanceToDestination <= 500 && timeDifference <= 15;
+      return distanceToDestination <= maxDistance && timeDifference <= 15;
     });
 
     res.json(filteredRides);

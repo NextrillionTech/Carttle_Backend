@@ -12,7 +12,12 @@ const rideHistorySchema = new mongoose.Schema({
       required: true
     }
   },
-  history: [
+  driver_history: [
+    {
+      type: mongoose.Schema.Types.Mixed 
+    }
+  ],
+  traveller_history: [
     {
       type: mongoose.Schema.Types.Mixed 
     }
