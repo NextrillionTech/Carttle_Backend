@@ -9,7 +9,7 @@ const auth = require("../middleware/auth");
 //Create Account
 authRouter.post("/api/signup", async (req, res) => {
   try {
-    const { name, phonenumber, password, type} = req.body;
+    const { name, phonenumber, password, is_driver } = req.body;
     const existingUser = await User.findOne({ phonenumber });
     if (existingUser) {
       return res.status(400).json({ msg: "User already exists" });
@@ -21,7 +21,7 @@ authRouter.post("/api/signup", async (req, res) => {
       name,
       phonenumber,
       password: hashedPassword,
-      type,
+      is_driver,
     });
     user = await user.save();
     res.json(user);
