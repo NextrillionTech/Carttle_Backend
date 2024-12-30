@@ -68,35 +68,35 @@ const setupSocket = (server) => {
      */
     const updateLocation = async (locationData) => {
         const { driverUserId, latitude, longitude } = locationData;
-
-        if (!driverUserId || !latitude || !longitude) {
+    
+        if (!driverUserId || (!latitude && latitude !== 0) || (!longitude && longitude !== 0)) {
             console.error("Invalid location data");
             return;
         }
-
+    
         try {
-            // Find the ride for the given driver and update current location
-            const ride = await Ride.findOneAndUpdate(
-                { "driver.userId": driverUserId, status: "upcoming" },
-                {
-                    currentLocation: {
-                        type: "Point",
-                        coordinates: [longitude, latitude],
-                    },
-                },
-                { new: true }
-            );
-
+            // Find the ride for the given driver
+            const ride = await Ride.findOne({ "driver.userId": driverUserId, status: "upcoming" });
+    
             if (!ride) {
                 console.warn(`No active ride found for driver ${driverUserId}`);
                 return;
             }
-
-            console.log(`Updated location for ride ${ride._id}: [${latitude}, ${longitude}]`);
+    
+            // Update only latitude or longitude in the `from.coordinates` array
+            const updatedCoordinates = [...ride.from.coordinates]; // Clone the existing coordinates
+            if (latitude !== undefined) updatedCoordinates[1] = latitude; // Update latitude (index 1)
+            if (longitude !== undefined) updatedCoordinates[0] = longitude; // Update longitude (index 0)
+    
+            // Update the ride with the new `from.coordinates`
+            ride.from.coordinates = updatedCoordinates;
+            await ride.save();
+    
+            console.log(`Updated location for ride ${ride._id}: [${updatedCoordinates[1]}, ${updatedCoordinates[0]}]`);
         } catch (error) {
             console.error("Error updating location:", error.message);
         }
-    };
+    };    
 
     /**
      * Handles new socket connections

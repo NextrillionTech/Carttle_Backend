@@ -2,6 +2,8 @@ const express = require("express");
 const rideRouter = express.Router();
 const Ride = require("../models/ride");
 const RideHistory = require("../models/ride_history");
+const mongoose = require('mongoose');
+
 
 // Helper function to generate all dates between start and end
 const getDatesBetween = (startDate, endDate) => {
@@ -138,30 +140,30 @@ rideRouter.get("/get-rides", async (req, res) => {
 });
 
 rideRouter.post("/rides/search", async (req, res) => {
-  const { currentLocation, to, dateDetails, maxDistance = 1000, available_seat } = req.body;
+  const { from, to, dateDetails, maxDistance = 1000, available_seat } = req.body; 
 
-  if (!currentLocation || !to || !dateDetails || !dateDetails.date || !dateDetails.time) {
-    return res.status(400).json({ error: "Current location, destination, date, and time are required" });
+  if (!from || !to || !dateDetails || !dateDetails.date || !dateDetails.time) {
+    return res.status(400).json({ error: "Origin, destination, date, and time are required" });
   }
 
   try {
     const specifiedDate = new Date(dateDetails.date);
     const userTime = new Date(`${dateDetails.date}T${dateDetails.time}:00Z`);
 
-    // Step 1: Find rides near the current location on the specified date
-    const ridesNearCurrentLocation = await Ride.find({
-      currentLocation: {
+    // Step 1: Find rides near the origin location on the specified date
+    const ridesNearOrigin = await Ride.find({
+      from: {
         $near: {
-          $geometry: { type: "Point", coordinates: [currentLocation.longitude, currentLocation.latitude] },
-          $maxDistance: maxDistance,
+          $geometry: { type: "Point", coordinates: [from.longitude, from.latitude] },
+          $maxDistance: maxDistance, 
         },
       },
       "dateDetails.date": specifiedDate,
-      ...(available_seat && { available_seat: { $gte: available_seat } }),
+      ...(available_seat && { available_seat: { $gte: available_seat } }), 
     });
 
     // Step 2: Filter rides within 500m of the destination location and within 15 minutes of the user's time
-    const filteredRides = ridesNearCurrentLocation.filter((ride) => {
+    const filteredRides = ridesNearOrigin.filter((ride) => {
       const [rideLongitude, rideLatitude] = ride.to.coordinates;
       const distanceToDestination = calculateDistance(
         { lat: rideLatitude, lng: rideLongitude },
@@ -169,9 +171,9 @@ rideRouter.post("/rides/search", async (req, res) => {
       );
 
       const rideTime = new Date(`${ride.dateDetails.date.toISOString().split("T")[0]}T${ride.dateDetails.time}:00Z`);
-      const timeDifference = (rideTime - userTime) / (1000 * 60);
+      const timeDifference = (rideTime - userTime) / (1000 * 60); 
 
-      return distanceToDestination <= maxDistance && timeDifference <= 15;
+      return distanceToDestination <= 1000 && timeDifference <= 15;
     });
 
     res.json(filteredRides);
@@ -180,10 +182,8 @@ rideRouter.post("/rides/search", async (req, res) => {
   }
 });
 
-
-// Helper function to calculate distance between two geographic coordinates
 function calculateDistance(coord1, coord2) {
-  const R = 6371000; 
+  const R = 6371000;
   const dLat = ((coord2.lat - coord1.lat) * Math.PI) / 180;
   const dLng = ((coord2.lng - coord1.lng) * Math.PI) / 180;
 
@@ -270,6 +270,5 @@ rideRouter.get("/rides/:rideId", async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
-
 
 module.exports = rideRouter;
