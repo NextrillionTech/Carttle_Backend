@@ -176,7 +176,15 @@ rideRouter.post("/rides/search", async (req, res) => {
       return distanceToDestination <= 1000 && timeDifference <= 15;
     });
 
-    res.json(filteredRides);
+    // Step 3: Apply gender filter if provided
+    let genderFilteredRides = filteredRides;
+    if (gender) {
+      genderFilteredRides = filteredRides.filter((ride) =>
+        ride.passengers.some((passenger) => passenger.gender === gender)
+      );
+    }
+
+    res.json(genderFilteredRides);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
